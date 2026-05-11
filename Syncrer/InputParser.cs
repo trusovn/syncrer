@@ -32,20 +32,24 @@ public class InputParser
             && parseResult.GetValue(targetFolderOption) is { } targetFolder
             && parseResult.GetValue(syncIntervalOption) is var syncInterval)
         {
-            return new InputParams()
-            {
-                SourceFolder = sourceFolder,
-                TargetFolder = targetFolder,
-                SyncInterval = syncInterval,
-            };
+            return new InputParams(SourceFolder: sourceFolder, TargetFolder: targetFolder, SyncInterval: syncInterval);
         }
         throw new ArgumentException(string.Join(" ", parseResult.Errors));
     }
-}
 
-public struct InputParams
-{
-    public DirectoryInfo SourceFolder { get; set; }
-    public DirectoryInfo TargetFolder { get; set; }
-    public int SyncInterval { get; set; }
+    public static void VerifyParams(InputParams inputParams)
+    {
+        if (!inputParams.SourceFolder.Exists)
+        {
+            throw new ArgumentException("Source folder does not exist");
+        }
+        if (inputParams.TargetFolder.Exists)
+        {
+            // TODO: handle 
+        }
+        if (inputParams.SyncInterval < 10)
+        {
+            throw new ArgumentException("Sync interval must be no lesser than 10 seconds");
+        }
+    }
 }
