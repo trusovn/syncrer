@@ -5,6 +5,7 @@ using Microsoft.Extensions.Hosting;
 using Syncrer.DI;
 using Syncrer.Inputs;
 using Syncrer.Logging;
+using Syncrer.Sync;
 
 namespace Syncrer;
 
@@ -14,7 +15,7 @@ namespace Syncrer;
  * 2. v Do the copy over and over on schedule.
  * 3. Do the smart copy on schedule.
  * 3.5 Proper logging.
- * 4. Destination is not empty. Start with the smart copy.
+ * 4. Destination is not empty. Smart start.
  * 5. Source is 5k non-empty files
  * 6. Source is 500k empty files
  * 7. Source is 1m non-empty files
@@ -25,11 +26,12 @@ internal class Syncrer
     private static async Task<int> Main(string[] args)
     {
         Console.WriteLine("Starting Syncrer. Press Ctrl-C to stop Syncrer.");
-
+        
         var builder = new Builder(args);
-
         await RegisterRunner(builder);
-
+        
+        builder.provider.GetService<StartupSyncer>()!.Run();
+        
         await builder.host.RunAsync();
 
         return 0;

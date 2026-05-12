@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Quartz;
 using Syncrer.Inputs;
+using Syncrer.Sync;
 
 namespace Syncrer.DI;
 
@@ -24,6 +25,8 @@ public class Builder
 
         builder.Services.AddSingleton(args);
         builder.Services.AddSingleton<InputParams>();
+        builder.Services.AddSingleton<StartupSyncer>();
+        builder.Services.AddSingleton<KnownModel>();
         builder.Services.AddQuartz();
         builder.Services.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);
 
