@@ -1,20 +1,29 @@
+using Quartz;
+using Syncrer.Inputs;
+
 namespace Syncrer;
 
-public class Scheduler(InputParams inputParams)
+public class Scheduler(InputParams inputParams) : IJob
 {
-    public void Start()
+    public Task Execute(IJobExecutionContext context)
     {
-        var files = inputParams.SourceFolder.GetFiles("*.*", SearchOption.AllDirectories);
+        CheckDestinationFolder(inputParams.Params.TargetFolder);
+        SyncFolders();
+        return Task.CompletedTask;
+    }
 
-        CheckDestinationFolder(inputParams.TargetFolder);
-        
+    private void SyncFolders()
+    {
+        var files = inputParams.Params.SourceFolder.GetFiles("*.*", SearchOption.AllDirectories);
         var sw = new System.Diagnostics.Stopwatch();
         sw.Start();
         foreach (var file in files)
         {
-            var newFile = file.CopyTo(Path.Combine(inputParams.TargetFolder.FullName, file.Name), overwrite: true);
+            var newFile = file.CopyTo(Path.Combine(inputParams.Params.TargetFolder.FullName, file.Name),
+                overwrite: true);
             Console.WriteLine($"Copied {file.Name} -> {newFile}");
         }
+
         sw.Stop();
         Console.WriteLine($"Took {sw.ElapsedMilliseconds} ms");
     }
@@ -25,6 +34,7 @@ public class Scheduler(InputParams inputParams)
         {
             Directory.Delete(targetFolder.FullName, true);
         }
+
         Directory.CreateDirectory(targetFolder.FullName);
     }
 }

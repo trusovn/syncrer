@@ -1,10 +1,10 @@
 using System.CommandLine;
 
-namespace Syncrer;
+namespace Syncrer.Inputs;
 
-public class InputParser
+public static class InputParamsUtils
 {
-    public static InputParams GetParams(string[] args)
+    public static InputParamsRecord ParseParams(string[] args)
     {
         RootCommand rootCommand = new("Syncrer app that synchronizes two folders (one way)");
         Option<DirectoryInfo> sourceFolderOption = new("--source-folder")
@@ -25,29 +25,33 @@ public class InputParser
             Required = true,
         };
         rootCommand.Options.Add(syncIntervalOption);
-        
+
         var parseResult = rootCommand.Parse(args);
         if (parseResult.Errors.Count <= 0
             && parseResult.GetValue(sourceFolderOption) is { } sourceFolder
             && parseResult.GetValue(targetFolderOption) is { } targetFolder
             && parseResult.GetValue(syncIntervalOption) is var syncInterval)
         {
-            return new InputParams(SourceFolder: sourceFolder, TargetFolder: targetFolder, SyncInterval: syncInterval);
+            return new InputParamsRecord(SourceFolder: sourceFolder, TargetFolder: targetFolder,
+                SyncInterval: syncInterval);
         }
+
         throw new ArgumentException(string.Join(" ", parseResult.Errors));
     }
 
-    public static void VerifyParams(InputParams inputParams)
+    public static void VerifyParams(InputParamsRecord inputParamsRecord)
     {
-        if (!inputParams.SourceFolder.Exists)
+        if (!inputParamsRecord.SourceFolder.Exists)
         {
             throw new ArgumentException("Source folder does not exist");
         }
-        if (inputParams.TargetFolder.Exists)
+
+        if (inputParamsRecord.TargetFolder.Exists)
         {
             // TODO: handle 
         }
-        if (inputParams.SyncInterval < 10)
+
+        if (inputParamsRecord.SyncInterval < 10)
         {
             throw new ArgumentException("Sync interval must be no lesser than 10 seconds");
         }
