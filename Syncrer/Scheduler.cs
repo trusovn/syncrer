@@ -1,30 +1,31 @@
+using Microsoft.Extensions.Logging;
 using Quartz;
 using Syncrer.Inputs;
 using Syncrer.Sync;
 
 namespace Syncrer;
 
-public class Scheduler(InputParams inputParams, KnownModel knownModel) : IJob
+public class Scheduler(InputParams inputParams, KnownModel knownModel, ILogger<Scheduler> logger) : IJob
 {
     public Task Execute(IJobExecutionContext context)
     {
-        Console.WriteLine("Scheduler is running");
+        logger.LogDebug("Scheduler is running");
 
-        var modificationsModel = ModelUtils.BuildModel(inputParams.Params.SourceFolder);
+        var modificationsModel = ModelUtils.BuildModel(inputParams.Params.SourceFolder, logger);
         var newKnownModel = ModelUtils.CreateCopy(modificationsModel);
         modificationsModel.SymmetricExceptWith(knownModel.Model);
 
         if (modificationsModel.Count == 0)
         {
-            Console.WriteLine("Nothing to do");
+            logger.LogDebug("Nothing to do");
             return Task.CompletedTask;
         }
 
         var fileDifferences = ModelUtils.GetUniquePaths(modificationsModel);
-        Console.WriteLine("Found {0} modifications", fileDifferences.Count);
+        logger.LogDebug("Found {fileDifferences.Count} modifications", fileDifferences.Count);
         foreach (var record in fileDifferences)
         {
-            Console.WriteLine($"{record}");
+            logger.LogDebug("{record}", record);
         }
 
         DeleteMatching(inputParams.Params.TargetFolder, fileDifferences);
@@ -35,10 +36,11 @@ public class Scheduler(InputParams inputParams, KnownModel knownModel) : IJob
         return Task.CompletedTask;
     }
 
-    private static void CopyMatching(
+    private void CopyMatching(
         DirectoryInfo sourceFolder, DirectoryInfo targetFolder, HashSet<string> files
     )
     {
+        logger.LogDebug("Copying files to target folder started");
         var sw = new System.Diagnostics.Stopwatch();
         sw.Start();
         foreach (var file in files)
@@ -50,16 +52,16 @@ public class Scheduler(InputParams inputParams, KnownModel knownModel) : IJob
                 Path.Combine(targetFolder.FullName, file),
                 true
             );
-            Console.WriteLine($"Copied {file} -> {fullPath}");
+            logger.LogInformation("Copied {file} -> {fullPath}", file, fullPath);
         }
 
         sw.Stop();
-        Console.WriteLine($"Took {sw.ElapsedMilliseconds} ms to copy files");
+        logger.LogTrace("Took {sw.ElapsedMilliseconds} ms to copy files", sw.ElapsedMilliseconds);
     }
 
-    private static void DeleteMatching(DirectoryInfo folder, HashSet<string> files)
+    private void DeleteMatching(DirectoryInfo folder, HashSet<string> files)
     {
-        Console.WriteLine("Deleting filed in target folder started files");
+        logger.LogDebug("Deleting files in target folder started");
         var sw = new System.Diagnostics.Stopwatch();
         sw.Start();
         foreach (var file in files)
@@ -67,10 +69,10 @@ public class Scheduler(InputParams inputParams, KnownModel knownModel) : IJob
             var fullPath = Path.Combine(folder.FullName, file);
             if (!File.Exists(fullPath)) continue;
             File.Delete(fullPath);
-            Console.WriteLine($"Deleted {file} -> {fullPath}");
+            logger.LogInformation("Deleted {fullPath}", fullPath);
         }
 
         sw.Stop();
-        Console.WriteLine($"Took {sw.ElapsedMilliseconds} ms to delete filed in target folder");
+        logger.LogTrace("Took {sw.ElapsedMilliseconds} ms to delete filed in target folder", sw.ElapsedMilliseconds);
     }
 }

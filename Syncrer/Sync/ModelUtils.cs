@@ -1,8 +1,10 @@
+using Microsoft.Extensions.Logging;
+
 namespace Syncrer.Sync;
 
 public static class ModelUtils
 {
-    public static HashSet<FileInfoRecord> BuildModel(DirectoryInfo folder)
+    public static HashSet<FileInfoRecord> BuildModel(DirectoryInfo folder, ILogger logger)
     {
         var files = folder.GetFiles("*.*", SearchOption.AllDirectories);
         var sw = new System.Diagnostics.Stopwatch();
@@ -18,7 +20,8 @@ public static class ModelUtils
         }
 
         sw.Stop();
-        Console.WriteLine($"Creating model for {folder.Name} took {sw.ElapsedMilliseconds} ms");
+        logger.LogTrace("Creating model for {folder.Name} took {sw.ElapsedMilliseconds} ms", folder.FullName,
+            sw.ElapsedMilliseconds);
 
         return model;
     }
@@ -30,6 +33,7 @@ public static class ModelUtils
         {
             result.Add(file.RelativePath);
         }
+
         return result;
     }
 

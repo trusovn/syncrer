@@ -1,8 +1,9 @@
+using Microsoft.Extensions.Logging;
 using Syncrer.Inputs;
 
 namespace Syncrer.Sync;
 
-public class StartupSyncer(InputParams inputParams, KnownModel model)
+public class StartupSyncer(InputParams inputParams, KnownModel model, ILogger<StartupSyncer> logger)
 {
     public void Run()
     {
@@ -21,18 +22,18 @@ public class StartupSyncer(InputParams inputParams, KnownModel model)
             var newPath = file.FullName.Replace(sourceFolder.FullName, targetFolder.FullName);
             Directory.CreateDirectory(Path.GetDirectoryName(newPath));
             var newFile = file.CopyTo(newPath, true);
-            Console.WriteLine($"Copied {file.Name} -> {newFile}");
+            logger.LogDebug("Copying {newFile.FullName} to {newPath}", file.FullName, newPath);
         }
 
         sw.Stop();
-        Console.WriteLine($"Took {sw.ElapsedMilliseconds} ms to full copy source to target");
+        logger.LogTrace("Took {sw.ElapsedMilliseconds} ms to full copy source to target", sw.ElapsedMilliseconds);
     }
 
-    private static void DeleteFolder(DirectoryInfo targetFolder)
+    private void DeleteFolder(DirectoryInfo targetFolder)
     {
         if (targetFolder.Exists)
         {
-            Console.WriteLine($"Deleting {targetFolder.FullName}...");
+            logger.LogDebug("Deleting {targetFolder.FullName}...", targetFolder.FullName);
             Directory.Delete(targetFolder.FullName, true);
         }
 
