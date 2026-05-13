@@ -5,6 +5,7 @@ using Quartz;
 using Serilog;
 using Syncrer.Inputs;
 using Syncrer.Sync;
+using Syncrer.Sync.Model;
 
 namespace Syncrer.DI;
 

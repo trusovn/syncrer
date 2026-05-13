@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 
-namespace Syncrer.Sync;
+namespace Syncrer.Sync.Model;
 
 public static class ModelUtils
 {

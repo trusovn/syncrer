@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Quartz;
 using Syncrer.Inputs;
 using Syncrer.Sync;
+using Syncrer.Sync.Model;
 
 namespace Syncrer;
 

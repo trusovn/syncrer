@@ -1,6 +1,6 @@
 using Syncrer.Inputs;
 
-namespace Syncrer;
+namespace Syncrer.Sync;
 
 public class ActionsMap
 {
