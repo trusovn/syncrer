@@ -11,68 +11,55 @@ public class Scheduler(InputParams inputParams, KnownModel knownModel, ILogger<S
     {
         logger.LogDebug("Scheduler is running");
 
-        var modificationsModel = ModelUtils.BuildModel(inputParams.Params.SourceFolder, logger);
-        var newKnownModel = ModelUtils.CreateCopy(modificationsModel);
-        modificationsModel.SymmetricExceptWith(knownModel.Model);
+        var (filesDiff, sourceModel) = GetModifications();
 
-        if (modificationsModel.Count == 0)
+        if (filesDiff.Count == 0)
         {
             logger.LogDebug("Nothing to do");
             return Task.CompletedTask;
         }
 
-        var fileDifferences = ModelUtils.GetUniquePaths(modificationsModel);
-        logger.LogDebug("Found {fileDifferences.Count} modifications", fileDifferences.Count);
-        foreach (var record in fileDifferences)
-        {
-            logger.LogDebug("{record}", record);
-        }
+        LogDifferences(filesDiff);
 
-        DeleteMatching(inputParams.Params.TargetFolder, fileDifferences);
-        CopyMatching(inputParams.Params.SourceFolder, inputParams.Params.TargetFolder, fileDifferences);
+        ActionsMap actionsMap = new(filesDiff, inputParams);
 
-        knownModel.UpdateModel(newKnownModel);
+        FileUtils.DeleteFiles(actionsMap.GetDeleted(), inputParams.Params.TargetFolder, logger);
+        FileUtils.CopyFiles(
+            actionsMap.GetNew(),
+            inputParams.Params.SourceFolder,
+            inputParams.Params.TargetFolder,
+            SyncActionType.New,
+            logger);
+        FileUtils.CopyFiles(
+            actionsMap.GetModified(),
+            inputParams.Params.SourceFolder,
+            inputParams.Params.TargetFolder,
+            SyncActionType.Modified,
+            logger);
+
+        knownModel.UpdateModel(sourceModel);
 
         return Task.CompletedTask;
     }
 
-    private void CopyMatching(
-        DirectoryInfo sourceFolder, DirectoryInfo targetFolder, HashSet<string> files
-    )
+    private void LogDifferences(HashSet<string> filesDiff)
     {
-        logger.LogDebug("Copying files to target folder started");
-        var sw = new System.Diagnostics.Stopwatch();
-        sw.Start();
-        foreach (var file in files)
+        logger.LogDebug("Found {fileDifferences.Count} modifications", filesDiff.Count);
+        foreach (var record in filesDiff)
         {
-            var fullPath = Path.Combine(sourceFolder.FullName, file);
-            if (!File.Exists(fullPath)) continue;
-            File.Copy(
-                fullPath,
-                Path.Combine(targetFolder.FullName, file),
-                true
-            );
-            logger.LogInformation("Copied {file} -> {fullPath}", file, fullPath);
+            logger.LogDebug("{record}", record);
         }
-
-        sw.Stop();
-        logger.LogTrace("Took {sw.ElapsedMilliseconds} ms to copy files", sw.ElapsedMilliseconds);
     }
 
-    private void DeleteMatching(DirectoryInfo folder, HashSet<string> files)
+    private (HashSet<string> filesDiff, HashSet<FileInfoRecord> sourceModel) GetModifications()
     {
-        logger.LogDebug("Deleting files in target folder started");
-        var sw = new System.Diagnostics.Stopwatch();
-        sw.Start();
-        foreach (var file in files)
-        {
-            var fullPath = Path.Combine(folder.FullName, file);
-            if (!File.Exists(fullPath)) continue;
-            File.Delete(fullPath);
-            logger.LogInformation("Deleted {fullPath}", fullPath);
-        }
+        var modificationsModel = ModelUtils.BuildModel(inputParams.Params.SourceFolder, logger);
+        var sourceModel = ModelUtils.CreateCopy(modificationsModel);
 
-        sw.Stop();
-        logger.LogTrace("Took {sw.ElapsedMilliseconds} ms to delete filed in target folder", sw.ElapsedMilliseconds);
+        modificationsModel.SymmetricExceptWith(knownModel.Model);
+
+        var filesDiff = ModelUtils.GetUniquePaths(modificationsModel);
+
+        return (filesDiff, sourceModel);
     }
 }

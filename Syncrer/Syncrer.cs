@@ -2,7 +2,6 @@
 using Quartz;
 using Microsoft.Extensions.Hosting;
 using Serilog;
-using Syncrer.DI;
 using Syncrer.Inputs;
 using Syncrer.Sync;
 using HostBuilder = Syncrer.DI.HostBuilder;
@@ -16,8 +15,7 @@ namespace Syncrer;
  * 3. v Do the smart copy on schedule.
  * 3.5. v Logging to console and file.
  * 3.6. v Log levels
- * 3.7. Don't log 'deleted' for modified files. Maybe need to rethink the detection logic for this.
- * 3.8. Performance logging
+ * 3.7. v Don't log 'deleted' for modified files. Maybe need to rethink the detection logic for this.
  * 4. Destination is not empty. Smart start.
  * 4.5. Configuration for file exclusions (e.g. .DS_Store) and log location.
  * 5. Source is 5k non-empty files
