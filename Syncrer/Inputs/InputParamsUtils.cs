@@ -46,11 +46,6 @@ public static class InputParamsUtils
             throw new ArgumentException("Source folder does not exist");
         }
 
-        if (inputParamsRecord.TargetFolder.Exists)
-        {
-            // TODO: handle 
-        }
-
         if (inputParamsRecord.SyncInterval < 10)
         {
             throw new ArgumentException("Sync interval must be no lesser than 10 seconds");

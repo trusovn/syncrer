@@ -28,12 +28,12 @@ public class HostBuilder
         ConfigureLogger(config);
 
         var hostBuilder = Microsoft.Extensions.Hosting.Host.CreateApplicationBuilder(args);
-        ConfigureServices(args, hostBuilder);
+        ConfigureServices(args, hostBuilder, config);
 
         return hostBuilder;
     }
 
-    private static void ConfigureServices(string[] args, HostApplicationBuilder hostBuilder)
+    private static void ConfigureServices(string[] args, HostApplicationBuilder hostBuilder, IConfigurationRoot config)
     {
         hostBuilder.Services.AddSingleton(args);
         hostBuilder.Services.AddSingleton<InputParams>();
@@ -42,6 +42,7 @@ public class HostBuilder
         hostBuilder.Services.AddQuartz();
         hostBuilder.Services.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);
         hostBuilder.Services.AddSerilog(Log.Logger);
+        hostBuilder.Services.AddSingleton(config);
     }
 
     private static void ConfigureLogger(IConfigurationRoot config)

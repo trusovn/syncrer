@@ -6,7 +6,7 @@ public static class ModelUtils
 {
     public static HashSet<FileInfoRecord> BuildModel(DirectoryInfo folder, ILogger logger)
     {
-        var files = folder.GetFiles("*.*", SearchOption.AllDirectories);
+        var files = folder.GetFiles("*", SearchOption.AllDirectories);
         var sw = new System.Diagnostics.Stopwatch();
         sw.Start();
         var model = new HashSet<FileInfoRecord>(files.Length);

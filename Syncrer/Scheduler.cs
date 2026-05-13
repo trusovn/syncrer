@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Quartz;
 using Syncrer.Inputs;
@@ -6,14 +8,18 @@ using Syncrer.Sync.Model;
 
 namespace Syncrer;
 
-public class Scheduler(InputParams inputParams, KnownModel knownModel, ILogger<Scheduler> logger) : IJob
+public class Scheduler(
+    InputParams inputParams,
+    KnownModel knownModel,
+    ILogger<Scheduler> logger,
+    IConfigurationRoot configuration) : IJob
 {
     public Task Execute(IJobExecutionContext context)
     {
         logger.LogDebug("Scheduler is running");
 
-        var (filesDiff, sourceModel) = GetModifications();
-
+        var sourceModel = ModelUtils.BuildModel(inputParams.Params.SourceFolder, logger);
+        var filesDiff = GetModifications(sourceModel);
         if (filesDiff.Count == 0)
         {
             logger.LogDebug("Nothing to do");
@@ -21,7 +27,6 @@ public class Scheduler(InputParams inputParams, KnownModel knownModel, ILogger<S
         }
 
         LogDifferences(filesDiff);
-
         ActionsMap actionsMap = new(filesDiff, inputParams);
 
         FileUtils.DeleteFiles(actionsMap.GetDeleted(), inputParams.Params.TargetFolder, logger);
@@ -52,15 +57,27 @@ public class Scheduler(InputParams inputParams, KnownModel knownModel, ILogger<S
         }
     }
 
-    private (HashSet<string> filesDiff, HashSet<FileInfoRecord> sourceModel) GetModifications()
+    private HashSet<string> GetModifications(HashSet<FileInfoRecord> sourceModel)
     {
-        var modificationsModel = ModelUtils.BuildModel(inputParams.Params.SourceFolder, logger);
-        var sourceModel = ModelUtils.CreateCopy(modificationsModel);
-
+        var modificationsModel = ModelUtils.CreateCopy(sourceModel);
         modificationsModel.SymmetricExceptWith(knownModel.Model);
-
         var filesDiff = ModelUtils.GetUniquePaths(modificationsModel);
+        FilterOutIgnored(filesDiff);
 
-        return (filesDiff, sourceModel);
+        return filesDiff;
+    }
+
+    private void FilterOutIgnored(HashSet<string> files)
+    {
+        string[] ignorePatterns = configuration.GetSection("fileIgnorePatterns").Get<string[]>() ?? [];
+        var regex = BuildRegex(ignorePatterns);
+        files.RemoveWhere(f => regex.IsMatch(Path.GetFileName(f)));
+    }
+
+    private static Regex BuildRegex(string[] patterns)
+    {
+        var joined = string.Join("|", patterns);
+        var escaped = joined.Replace("*", ".*").Replace(".", "\\.");
+        return new Regex($"^(?:{escaped})$", RegexOptions.Compiled);
     }
 }

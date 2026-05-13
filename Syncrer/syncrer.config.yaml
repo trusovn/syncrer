@@ -23,3 +23,18 @@ Serilog:
         rollingInterval: Day
         retainedFileCountLimit: 14
         outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} {Message:lj}{NewLine}"
+
+fileIgnorePatterns:
+    - ".DS_Store"
+    - ".AppleDouble"
+    - ".LSOverride"
+    - "._*"
+    - ".Spotlight-V100"
+    - ".Trashes"
+    - ".fseventsd"
+    - "Thumbs.db"
+    - "ehthumbs.db"
+    - "Desktop.ini"
+    - "desktop.ini"
+    - ".directory"
+    - ".Trash-*"

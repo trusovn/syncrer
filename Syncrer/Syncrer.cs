@@ -17,7 +17,7 @@ namespace Syncrer;
  * 3.6. v Log levels
  * 3.7. v Don't log 'deleted' for modified files. Maybe need to rethink the detection logic for this.
  * 4. v Destination is not empty. Smart start.
- * 4.5. Configuration for file exclusions (e.g. .DS_Store) and log location.
+ * 4.5. v Configuration for file exclusions (e.g. .DS_Store) and log location.
  * 5. Source is 5k non-empty files
  * 6. Source is 500k empty files
  * 7. Source is 1m non-empty files
