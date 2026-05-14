@@ -28,16 +28,23 @@ internal static class Program
 {
     private static async Task<int> Main(string[] args)
     {
-        var builder = new HostBuilder(args);
-        await Scheduler.ConfigureRunner(builder);
+        try
+        {
+            var builder = new HostBuilder(args);
+            await Scheduler.ConfigureRunner(builder);
 
-        builder.Provider.GetService<StartupSyncer>()!.Run();
+            builder.Provider.GetService<StartupSyncer>()!.Run();
 
-        Console.WriteLine("Starting Syncrer. Press Ctrl-C to stop Syncrer.");
-        Log.Logger.Information("Starting Syncrer.");
+            Console.WriteLine("Starting Syncrer. Press Ctrl-C to stop Syncrer.");
+            Log.Logger.Information("Starting Syncrer.");
 
-        await builder.Host.RunAsync();
+            await builder.Host.RunAsync();
 
-        return 0;
+            return 0;
+        }
+        finally
+        {
+            await Log.CloseAndFlushAsync();
+        }
     }
 }
