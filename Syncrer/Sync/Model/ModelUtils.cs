@@ -20,7 +20,7 @@ public static class ModelUtils
         }
 
         sw.Stop();
-        logger.LogInformation("Creating model for {folder.Name} took {sw.ElapsedMilliseconds} ms", folder.FullName,
+        logger.LogDebug("Creating model for {FolderName} took {ElapsedMilliseconds} ms", folder.FullName,
             sw.ElapsedMilliseconds);
 
         return model;

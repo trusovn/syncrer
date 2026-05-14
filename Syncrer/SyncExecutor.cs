@@ -27,7 +27,7 @@ public class SyncExecutor(
             return Task.CompletedTask;
         }
 
-        logger.LogDebug("Found {fileDifferences.Count} modifications", filesDiff.Count);
+        logger.LogDebug("Found {FileDifferencesCount} modifications", filesDiff.Count);
 
         ActionsMap actionsMap = new(filesDiff, inputParams);
 

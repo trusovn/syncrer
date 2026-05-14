@@ -11,11 +11,25 @@ public static class FileUtils
         foreach (var file in files)
         {
             var path = Path.Combine(folder.FullName, file);
-            File.Delete(path);
-            logger.LogInformation("{actionType} file: {file}", actionType, file);
+            try
+            {
+                File.Delete(path);
+            }
+            catch (IOException exception)
+            {
+                logger.LogError(
+                    exception,
+                    "{ActionType} file: Failed deleting {File}",
+                    actionType,
+                    file);
+                continue;
+            }
+
+            logger.LogInformation("{ActionType} file: {File}", actionType, file);
         }
+
         sw.Stop();
-        logger.LogInformation("{actionType} files: {files}; took {sw.Elapsed}", actionType, files.Count, sw.Elapsed);
+        logger.LogInformation("{ActionType} files: {Files}; took {Elapsed}", actionType, files.Count, sw.Elapsed);
     }
 
     public static void CopyFiles(
@@ -32,10 +46,24 @@ public static class FileUtils
             var sourcePath = Path.Combine(sourceFolder.FullName, file);
             var targetPath = Path.Combine(targetFolder.FullName, file);
             Directory.CreateDirectory(Path.GetDirectoryName(targetPath));
-            File.Copy(sourcePath, targetPath, true);
-            logger.LogInformation("{actionType} file: {file}", actionType, file);
+            try
+            {
+                File.Copy(sourcePath, targetPath, true);
+            }
+            catch (IOException exception)
+            {
+                logger.LogError(
+                    exception,
+                    "{ActionType} file: Error copying {File}",
+                    actionType,
+                    file);
+                continue;
+            }
+
+            logger.LogInformation("{ActionType} file: {File}", actionType, file);
         }
+
         sw.Stop();
-        logger.LogInformation("{actionType} files: {files}; took {sw.Elapsed}", actionType, files.Count, sw.Elapsed);
+        logger.LogInformation("{ActionType} files: {Files}; took {Elapsed}", actionType, files.Count, sw.Elapsed);
     }
 }

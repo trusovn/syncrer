@@ -55,7 +55,8 @@ public class HostBuilder
     private static IConfigurationRoot GetConfiguration()
     {
         var configBuilder = new ConfigurationBuilder();
-        configBuilder.SetBasePath(Directory.GetCurrentDirectory())
+        configBuilder
+            .SetBasePath(AppContext.BaseDirectory)
             .AddYamlFile("syncrer.config.yaml", optional: false, reloadOnChange: true);
         var config = configBuilder.Build();
         return config;

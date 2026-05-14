@@ -36,19 +36,31 @@ public static class InputParamsUtils
                 SyncInterval: syncInterval);
         }
 
-        throw new ArgumentException(string.Join(" ", parseResult.Errors));
+        throw new ArgumentException(
+            string.Join(Environment.NewLine, parseResult.Errors.Select(e => e.Message)));
     }
 
     public static void VerifyParams(InputParamsRecord inputParamsRecord)
     {
-        if (!inputParamsRecord.SourceFolder.Exists)
+        var sourceFolder = inputParamsRecord.SourceFolder;
+        var targetFolder = inputParamsRecord.TargetFolder;
+
+        if (!sourceFolder.Exists)
         {
-            throw new ArgumentException("Source folder does not exist");
+            throw new ArgumentException(
+                $"Source folder does not exist or cannot be accessed: {sourceFolder.FullName}");
+        }
+
+        var targetParent = targetFolder.Parent;
+        if (targetParent is null || !targetParent.Exists)
+        {
+            throw new ArgumentException(
+                $"Target folder parent does not exist or cannot be accessed: {targetFolder.FullName}");
         }
 
         if (inputParamsRecord.SyncInterval < 10)
         {
-            throw new ArgumentException("Sync interval must be no lesser than 10 seconds");
+            throw new ArgumentException("Sync interval must be no less than 10 seconds");
         }
     }
 }
