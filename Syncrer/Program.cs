@@ -7,24 +7,6 @@ using HostBuilder = Syncrer.DI.HostBuilder;
 
 namespace Syncrer;
 
-/**
- * TODO:
- * 1. v Source is 100 files. Destination is empty, Do the copy over.
- * 2. v Do the copy over and over on schedule.
- * 3. v Do the smart copy on schedule.
- * 3.5. v Logging to console and file.
- * 3.6. v Log levels
- * 3.7. v Don't log 'deleted' for modified files. Maybe need to rethink the detection logic for this.
- * 4. v Destination is not empty. Smart start.
- * 4.5. v Configuration for file exclusions (e.g. .DS_Store) and log location.
- * 5. Source is 5k non-empty files
- * 6. Source is 500k empty files
- * 7. Source is 1m non-empty files
- * 7.5. v Investigate-fix 'interval smaller than sync time'
- * 8. Add support for empty folders
- * 9. Gracefully handle copying and other errors
- * 10. Handle 'target modified'. Likely, need to store hash of the whole folder and restart if that changes.
- */
 internal static class Program
 {
     private static async Task<int> Main(string[] args)

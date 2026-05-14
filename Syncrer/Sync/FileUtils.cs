@@ -2,12 +2,12 @@ using Microsoft.Extensions.Logging;
 
 namespace Syncrer.Sync;
 
-public static class FileUtils
+public static partial class FileUtils
 {
     public static void DeleteFiles(HashSet<string> files, DirectoryInfo folder, ILogger logger)
     {
         var sw = System.Diagnostics.Stopwatch.StartNew();
-        var actionType = SyncActionType.Deleted;
+        const SyncActionType actionType = SyncActionType.Deleted;
         foreach (var file in files)
         {
             var path = Path.Combine(folder.FullName, file);
@@ -25,11 +25,11 @@ public static class FileUtils
                 continue;
             }
 
-            logger.LogInformation("{ActionType} file: {File}", actionType, file);
+            logger.LogActionOnFile(actionType, file);
         }
 
         sw.Stop();
-        logger.LogInformation("{ActionType} files: {Files}; took {Elapsed}", actionType, files.Count, sw.Elapsed);
+        logger.LogActionTotalElapsed(actionType, files.Count, sw.Elapsed);
     }
 
     public static void CopyFiles(
@@ -45,7 +45,7 @@ public static class FileUtils
         {
             var sourcePath = Path.Combine(sourceFolder.FullName, file);
             var targetPath = Path.Combine(targetFolder.FullName, file);
-            Directory.CreateDirectory(Path.GetDirectoryName(targetPath));
+            Directory.CreateDirectory(Path.GetDirectoryName(targetPath) ?? throw new InvalidOperationException());
             try
             {
                 File.Copy(sourcePath, targetPath, true);
@@ -60,10 +60,16 @@ public static class FileUtils
                 continue;
             }
 
-            logger.LogInformation("{ActionType} file: {File}", actionType, file);
+            logger.LogActionOnFile(actionType, file);
         }
 
         sw.Stop();
-        logger.LogInformation("{ActionType} files: {Files}; took {Elapsed}", actionType, files.Count, sw.Elapsed);
+        logger.LogActionTotalElapsed(actionType, files.Count, sw.Elapsed);
     }
+
+    [LoggerMessage(LogLevel.Information, "{ActionType} file: {File}")]
+    static partial void LogActionOnFile(this ILogger logger, SyncActionType actionType, string file);
+
+    [LoggerMessage(LogLevel.Debug, "{ActionType} files: {Files}; took {Elapsed}")]
+    static partial void LogActionTotalElapsed(this ILogger logger, SyncActionType actionType, int files, TimeSpan elapsed);
 }
