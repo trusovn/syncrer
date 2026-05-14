@@ -6,6 +6,7 @@ public static class FileUtils
 {
     public static void DeleteFiles(HashSet<string> files, DirectoryInfo folder, ILogger logger)
     {
+        var sw = System.Diagnostics.Stopwatch.StartNew();
         var actionType = SyncActionType.Deleted;
         foreach (var file in files)
         {
@@ -13,6 +14,8 @@ public static class FileUtils
             File.Delete(path);
             logger.LogInformation("{actionType} file: {file}", actionType, file);
         }
+        sw.Stop();
+        logger.LogInformation("{actionType} files: {files}; took {sw.Elapsed}", actionType, files.Count, sw.Elapsed);
     }
 
     public static void CopyFiles(
@@ -23,6 +26,7 @@ public static class FileUtils
         ILogger logger
     )
     {
+        var sw = System.Diagnostics.Stopwatch.StartNew();
         foreach (var file in files)
         {
             var sourcePath = Path.Combine(sourceFolder.FullName, file);
@@ -31,5 +35,7 @@ public static class FileUtils
             File.Copy(sourcePath, targetPath, true);
             logger.LogInformation("{actionType} file: {file}", actionType, file);
         }
+        sw.Stop();
+        logger.LogInformation("{actionType} files: {files}; took {sw.Elapsed}", actionType, files.Count, sw.Elapsed);
     }
 }

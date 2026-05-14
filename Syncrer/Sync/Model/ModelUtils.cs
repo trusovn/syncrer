@@ -6,9 +6,9 @@ public static class ModelUtils
 {
     public static HashSet<FileInfoRecord> BuildModel(DirectoryInfo folder, ILogger logger)
     {
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+
         var files = folder.GetFiles("*", SearchOption.AllDirectories);
-        var sw = new System.Diagnostics.Stopwatch();
-        sw.Start();
         var model = new HashSet<FileInfoRecord>(files.Length);
         foreach (var file in files)
         {
@@ -20,7 +20,7 @@ public static class ModelUtils
         }
 
         sw.Stop();
-        logger.LogTrace("Creating model for {folder.Name} took {sw.ElapsedMilliseconds} ms", folder.FullName,
+        logger.LogInformation("Creating model for {folder.Name} took {sw.ElapsedMilliseconds} ms", folder.FullName,
             sw.ElapsedMilliseconds);
 
         return model;
