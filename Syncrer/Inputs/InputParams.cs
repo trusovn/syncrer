@@ -4,8 +4,8 @@ public class InputParams
 {
     public InputParams(string[] args)
     {
-        var parsedInput = InputParamsUtils.ParseParams(args);
-        InputParamsUtils.VerifyParams(parsedInput);
+        var parsedInput = InputParamsConfiguration.ParseParams(args);
+        InputParamsVerifier.VerifyParams(parsedInput);
         Params = parsedInput;
     }
 

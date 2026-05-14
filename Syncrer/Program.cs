@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using Syncrer.Inputs;
 using Syncrer.Sync;
 using HostBuilder = Syncrer.DI.HostBuilder;
 
@@ -30,7 +31,8 @@ internal static class Program
     {
         try
         {
-            var builder = new HostBuilder(args);
+            var inputParams = new InputParams(args);
+            var builder = new HostBuilder(args, inputParams);
             await Scheduler.ConfigureRunner(builder);
 
             builder.Provider.GetService<StartupSyncer>()!.Run();
@@ -41,6 +43,17 @@ internal static class Program
             await builder.Host.RunAsync();
 
             return 0;
+        }
+        catch (InputParamsException exception)
+        {
+            if (!string.IsNullOrWhiteSpace(exception.Message))
+            {
+                await Console.Error.WriteLineAsync(exception.Message);
+                await Console.Error.WriteLineAsync();
+            }
+
+            await Console.Error.WriteAsync(InputParamsUsage.Text);
+            return exception.ExitCode;
         }
         finally
         {

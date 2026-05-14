@@ -14,29 +14,33 @@ public class HostBuilder
     public IServiceProvider Provider { get; }
     public IHost Host { get; }
 
-    public HostBuilder(string[] args)
+    public HostBuilder(string[] args, InputParams inputParams)
     {
-        var builder = CreateHostBuilder(args);
+        var builder = CreateHostBuilder(args, inputParams);
         Host = builder.Build();
         var serviceScope = Host.Services.CreateScope();
         Provider = serviceScope.ServiceProvider;
     }
 
-    private static HostApplicationBuilder CreateHostBuilder(string[] args)
+    private static HostApplicationBuilder CreateHostBuilder(string[] args, InputParams inputParams)
     {
         var config = GetConfiguration();
         ConfigureLogger(config);
 
         var hostBuilder = Microsoft.Extensions.Hosting.Host.CreateApplicationBuilder(args);
-        ConfigureServices(args, hostBuilder, config);
+        ConfigureServices(args, inputParams, hostBuilder, config);
 
         return hostBuilder;
     }
 
-    private static void ConfigureServices(string[] args, HostApplicationBuilder hostBuilder, IConfigurationRoot config)
+    private static void ConfigureServices(
+        string[] args,
+        InputParams inputParams,
+        HostApplicationBuilder hostBuilder,
+        IConfigurationRoot config)
     {
         hostBuilder.Services.AddSingleton(args);
-        hostBuilder.Services.AddSingleton<InputParams>();
+        hostBuilder.Services.AddSingleton(inputParams);
         hostBuilder.Services.AddSingleton<StartupSyncer>();
         hostBuilder.Services.AddSingleton<KnownModel>();
         hostBuilder.Services.AddQuartz();
