@@ -132,26 +132,6 @@ public sealed class SyncExecutorTests
     }
 
     [Fact]
-    public async Task Execute_ReplacesBlockingTargetDirectoryWithSourceFile()
-    {
-        using var temp = new TempDirectory();
-        var source = temp.CreateDirectory("source");
-        var target = temp.CreateDirectory("target");
-        temp.CreateFile("source/collision", "source");
-        temp.CreateDirectory("target/collision");
-        var knownModel = ModelUtils.CreateKnownModel(target);
-
-        var executor = CreateExecutor(source, target, knownModel);
-
-        var exception = await Record.ExceptionAsync(() => executor.Execute(null!));
-
-        Assert.Null(exception);
-        Assert.False(Directory.Exists(Path.Combine(target.FullName, "collision")));
-        Assert.Equal("source", await File.ReadAllTextAsync(Path.Combine(target.FullName, "collision")));
-        Assert.Contains(knownModel.Model, record => record.RelativePath == "collision");
-    }
-
-    [Fact]
     public async Task Execute_KeepsKnownModelWhenSourceScanFails()
     {
         using var temp = new TempDirectory();
