@@ -70,7 +70,7 @@ public class SyncExecutor(
     private static Regex BuildRegex(string[] patterns)
     {
         var joined = string.Join("|", patterns);
-        var escaped = joined.Replace("*", ".*").Replace(".", "\\.");
+        var escaped = joined.Replace(".", "\\.").Replace("*", ".*");
         return new Regex($"^(?:{escaped})$", RegexOptions.Compiled);
     }
 }
