@@ -13,9 +13,9 @@ public sealed class ModelUtilsTests
         var filePath = temp.CreateFile("nested/file.txt", "content");
         var fileInfo = new FileInfo(filePath);
 
-        var model = ModelUtils.BuildModel(temp.DirectoryInfo, NullLogger.Instance);
+        FolderSnapshot folderSnapshot = ModelUtils.BuildModel(temp.DirectoryInfo, NullLogger.Instance);
 
-        var record = Assert.Single(model);
+        FileInfoRecord record = Assert.Single(folderSnapshot.Current);
         Assert.Equal(Path.Combine("nested", "file.txt"), record.RelativePath);
         Assert.Equal(fileInfo.Length, record.SizeBytes);
         Assert.Equal(fileInfo.LastWriteTimeUtc.Ticks, record.LastWriteTimeTicks);
@@ -24,12 +24,12 @@ public sealed class ModelUtilsTests
     [Fact]
     public void GetUniquePaths_CollapsesMultipleRecordsForTheSameRelativePath()
     {
-        HashSet<FileInfoRecord> model =
+        var model = new FolderSnapshot(
         [
-            new("same.txt", LastWriteTimeTicks: 1, SizeBytes: 10),
-            new("same.txt", LastWriteTimeTicks: 2, SizeBytes: 10),
-            new("other.txt", LastWriteTimeTicks: 1, SizeBytes: 10),
-        ];
+            new FileInfoRecord("same.txt", 1, 10),
+            new FileInfoRecord("same.txt", 2, 10),
+            new FileInfoRecord("other.txt", 1, 10)
+        ]);
 
         var uniquePaths = ModelUtils.GetUniquePaths(model);
 

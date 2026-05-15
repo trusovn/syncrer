@@ -9,7 +9,7 @@ public static class SyncExecutorUtils
     public static SyncExecutor CreateExecutor(
         DirectoryInfo source,
         DirectoryInfo target,
-        KnownModel knownModel,
+        KnownModelStore knownModelStore,
         params string[] ignorePatterns)
     {
         var configurationValues = ignorePatterns
@@ -20,7 +20,7 @@ public static class SyncExecutorUtils
 
         return new SyncExecutor(
             InputParamsUtils.CreateInputParams(source, target),
-            knownModel,
+            knownModelStore,
             NullLogger<SyncExecutor>.Instance,
             configuration);
     }

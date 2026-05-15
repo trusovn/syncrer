@@ -3,7 +3,7 @@ using Syncrer.Sync.Model;
 
 namespace Syncrer.Sync;
 
-public class StartupSyncer(InputParams inputParams, KnownModel model)
+public class StartupSyncer(InputParams inputParams, KnownModelStore modelStore)
 {
     public void Run()
     {
@@ -12,6 +12,6 @@ public class StartupSyncer(InputParams inputParams, KnownModel model)
             inputParams.Params.TargetFolder.Create();
         }
 
-        model.BuildNew(inputParams.Params.TargetFolder);
+        modelStore.BuildNew(inputParams.Params.TargetFolder);
     }
 }

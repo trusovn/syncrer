@@ -1,15 +1,16 @@
+using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 
 namespace Syncrer.Sync.Model;
 
 public static class ModelUtils
 {
-    public static HashSet<FileInfoRecord> BuildModel(DirectoryInfo folder, ILogger logger)
+    public static FolderSnapshot BuildModel(DirectoryInfo folder, ILogger logger)
     {
-        var sw = System.Diagnostics.Stopwatch.StartNew();
+        var sw = Stopwatch.StartNew();
 
-        var files = folder.GetFiles("*", SearchOption.AllDirectories);
-        var model = new HashSet<FileInfoRecord>(files.Length);
+        FileInfo[] files = folder.GetFiles("*", SearchOption.AllDirectories);
+        var model = new FolderSnapshot(files.Length);
         foreach (var file in files)
         {
             model.Add(new FileInfoRecord(
@@ -26,10 +27,10 @@ public static class ModelUtils
         return model;
     }
 
-    public static HashSet<string> GetUniquePaths(HashSet<FileInfoRecord> model)
+    public static HashSet<string> GetUniquePaths(FolderSnapshot snapshot)
     {
-        HashSet<string> result = new(model.Count);
-        foreach (var file in model)
+        HashSet<string> result = new(snapshot.Count);
+        foreach (FileInfoRecord file in snapshot)
         {
             result.Add(file.RelativePath);
         }
@@ -37,8 +38,8 @@ public static class ModelUtils
         return result;
     }
 
-    public static HashSet<FileInfoRecord> CreateCopy(HashSet<FileInfoRecord> model)
+    public static FolderSnapshot CreateCopy(FolderSnapshot snapshot)
     {
-        return [..model];
+        return snapshot.GetCopy();
     }
 }

@@ -11,7 +11,7 @@ namespace Syncrer;
 [DisallowConcurrentExecution]
 public class SyncExecutor(
     InputParams inputParams,
-    KnownModel knownModel,
+    KnownModelStore knownModelStore,
     ILogger<SyncExecutor> logger,
     IConfigurationRoot configuration) : IJob
 {
@@ -19,8 +19,18 @@ public class SyncExecutor(
     {
         logger.LogDebug("Scheduler is running");
 
-        var sourceModel = ModelUtils.BuildModel(inputParams.Params.SourceFolder, logger);
-        var filesDiff = GetModifications(sourceModel);
+        FolderSnapshot sourceSnapshot = null!;
+        try
+        {
+            sourceSnapshot = ModelUtils.BuildModel(inputParams.Params.SourceFolder, logger);
+        }
+        catch (IOException exception)
+        {
+            logger.LogCritical(exception, "Failure during creating model on source folder");
+            return Task.CompletedTask;
+        }
+
+        HashSet<string> filesDiff = GetModifications(sourceSnapshot);
         if (filesDiff.Count == 0)
         {
             logger.LogDebug("Nothing to do");
@@ -45,15 +55,15 @@ public class SyncExecutor(
             SyncActionType.Modified,
             logger);
 
-        knownModel.UpdateModel(sourceModel);
+        knownModelStore.UpdateModel(sourceSnapshot);
 
         return Task.CompletedTask;
     }
 
-    private HashSet<string> GetModifications(HashSet<FileInfoRecord> sourceModel)
+    private HashSet<string> GetModifications(FolderSnapshot sourceSnapshot)
     {
-        var modificationsModel = ModelUtils.CreateCopy(sourceModel);
-        modificationsModel.SymmetricExceptWith(knownModel.Model);
+        FolderSnapshot modificationsModel = ModelUtils.CreateCopy(sourceSnapshot);
+        modificationsModel.SymmetricExceptWith(knownModelStore.FolderSnapshot);
         var filesDiff = ModelUtils.GetUniquePaths(modificationsModel);
         FilterOutIgnored(filesDiff);
 

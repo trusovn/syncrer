@@ -5,9 +5,9 @@ namespace Syncrer.Tests.Utils;
 
 public static class ModelUtils
 {
-    public static KnownModel CreateKnownModel(DirectoryInfo target)
+    public static KnownModelStore CreateFolderModel(DirectoryInfo target)
     {
-        var knownModel = new KnownModel(NullLogger<KnownModel>.Instance);
+        var knownModel = new KnownModelStore(NullLogger<KnownModelStore>.Instance);
         knownModel.BuildNew(target);
         return knownModel;
     }

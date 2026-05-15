@@ -42,7 +42,7 @@ public class HostBuilder
         hostBuilder.Services.AddSingleton(args);
         hostBuilder.Services.AddSingleton(inputParams);
         hostBuilder.Services.AddSingleton<StartupSyncer>();
-        hostBuilder.Services.AddSingleton<KnownModel>();
+        hostBuilder.Services.AddSingleton<KnownModelStore>();
         hostBuilder.Services.AddQuartz();
         hostBuilder.Services.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);
         hostBuilder.Services.AddSerilog(Log.Logger);
