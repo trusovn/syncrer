@@ -7,10 +7,11 @@ public static class InputParamsConfiguration
 {
     public static InputParamsRecord ParseParams(string[] args)
     {
-        var rootCommand = CreateRootCommand(
+        RootCommand rootCommand = CreateRootCommand(
             out var sourceFolderOption,
             out var targetFolderOption,
-            out var syncIntervalOption);
+            out Option<int> syncIntervalOption,
+            out Option<bool> assumeYesOption);
 
         var parseResult = rootCommand.Parse(args);
         if (parseResult.Action is HelpAction)
@@ -21,12 +22,14 @@ public static class InputParamsConfiguration
         if (parseResult.Errors.Count <= 0
             && parseResult.GetValue(sourceFolderOption) is { } sourceFolder
             && parseResult.GetValue(targetFolderOption) is { } targetFolder
-            && parseResult.GetValue(syncIntervalOption) is var syncInterval)
+            && parseResult.GetValue(syncIntervalOption) is var syncInterval
+            && parseResult.GetValue(assumeYesOption) is var assumeYes)
         {
             return new InputParamsRecord(
                 SourceFolder: sourceFolder,
                 TargetFolder: targetFolder,
-                SyncInterval: syncInterval);
+                syncInterval,
+                assumeYes);
         }
 
         throw InputParamsException.Invalid(parseResult.Errors.Select(e => e.Message));
@@ -35,7 +38,8 @@ public static class InputParamsConfiguration
     private static RootCommand CreateRootCommand(
         out Option<DirectoryInfo> sourceFolderOption,
         out Option<DirectoryInfo> targetFolderOption,
-        out Option<int> syncIntervalOption)
+        out Option<int> syncIntervalOption,
+        out Option<bool> assumeYes)
     {
         RootCommand rootCommand = new("Syncrer app that synchronizes two folders (one way)");
         sourceFolderOption = new Option<DirectoryInfo>("--source-folder")
@@ -58,6 +62,13 @@ public static class InputParamsConfiguration
             Required = true,
         };
         rootCommand.Options.Add(syncIntervalOption);
+
+        assumeYes = new Option<bool>("--yes", "-Y")
+        {
+            Description = "Assume 'yes' answer for overwriting target folder.",
+            Required = false
+        };
+        rootCommand.Options.Add(assumeYes);
 
         return rootCommand;
     }
