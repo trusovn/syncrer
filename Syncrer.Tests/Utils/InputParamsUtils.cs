@@ -4,13 +4,21 @@ namespace Syncrer.Tests.Utils;
 
 public static class InputParamsUtils
 {
-    public static InputParams CreateInputParams(DirectoryInfo source, DirectoryInfo target)
+    public static InputParams CreateInputParams(DirectoryInfo source, DirectoryInfo target, bool assumeYes = false)
     {
-        return new InputParams(
-        [
+        var args = new List<string>
+        {
             "--source-folder", source.FullName,
             "--target-folder", target.FullName,
             "--sync-interval", "10",
-        ]);
+        };
+
+        if (assumeYes)
+        {
+            args.Add("--yes");
+        }
+
+        return new InputParams(
+            [..args]);
     }
 }
