@@ -19,7 +19,7 @@ public class SyncExecutor(
     {
         logger.LogDebug("Scheduler is running");
 
-        FolderSnapshot sourceSnapshot = null!;
+        FolderSnapshot sourceSnapshot;
         try
         {
             sourceSnapshot = ModelUtils.BuildModel(inputParams.Params.SourceFolder, logger);
@@ -34,13 +34,27 @@ public class SyncExecutor(
         if (filesDiff.Count == 0)
         {
             logger.LogDebug("Nothing to do");
-            return Task.CompletedTask;
+            return RebuildKnownModelAndComplete();
         }
 
         logger.LogDebug("Found {FileDifferencesCount} modifications", filesDiff.Count);
 
         ActionsMap actionsMap = new(filesDiff, inputParams);
 
+        ExecuteSync(actionsMap);
+
+        return RebuildKnownModelAndComplete();
+    }
+
+    private Task RebuildKnownModelAndComplete()
+    {
+        // TODO: do the rebuild in a separate 'check for health' process - not every time here
+        knownModelStore.BuildNew(inputParams.Params.TargetFolder);
+        return Task.CompletedTask;
+    }
+
+    private void ExecuteSync(ActionsMap actionsMap)
+    {
         FileUtils.DeleteFiles(actionsMap.GetDeleted(), inputParams.Params.TargetFolder, logger);
         FileUtils.CopyFiles(
             actionsMap.GetNew(),
@@ -54,10 +68,6 @@ public class SyncExecutor(
             inputParams.Params.TargetFolder,
             SyncActionType.Modified,
             logger);
-
-        knownModelStore.UpdateModel(sourceSnapshot);
-
-        return Task.CompletedTask;
     }
 
     private HashSet<string> GetModifications(FolderSnapshot sourceSnapshot)

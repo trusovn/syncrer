@@ -1,6 +1,7 @@
 using Syncrer.Sync;
 using Syncrer.Sync.Model;
 using static Syncrer.Tests.Utils.SyncExecutorUtils;
+using FileUtils = Syncrer.Tests.Utils.FileUtils;
 using ModelUtils = Syncrer.Tests.Utils.ModelUtils;
 
 namespace Syncrer.Tests.Sync;
@@ -102,11 +103,13 @@ public sealed class SyncExecutorTests
         var target = temp.CreateDirectory("target");
         var sourcePath = temp.CreateFile("source/same.txt", "source");
         var targetPath = temp.CreateFile("target/same.txt", "source");
-        MatchLastWriteTime(sourcePath, targetPath);
+        FileUtils.MatchLastWriteTime(sourcePath, targetPath);
         var knownModel = ModelUtils.CreateFolderModel(target);
         File.Delete(targetPath);
 
         var executor = CreateExecutor(source, target, knownModel);
+
+        await executor.Execute(null!);
 
         await executor.Execute(null!);
 
@@ -122,12 +125,13 @@ public sealed class SyncExecutorTests
         var target = temp.CreateDirectory("target");
         var sourcePath = temp.CreateFile("source/same.txt", "source");
         var targetPath = temp.CreateFile("target/same.txt", "source");
-        MatchLastWriteTime(sourcePath, targetPath);
+        FileUtils.MatchLastWriteTime(sourcePath, targetPath);
         var knownModel = ModelUtils.CreateFolderModel(target);
         await File.WriteAllTextAsync(targetPath, "manual");
 
         var executor = CreateExecutor(source, target, knownModel);
 
+        await executor.Execute(null!);
         await executor.Execute(null!);
 
         Assert.Equal("source", await File.ReadAllTextAsync(targetPath));
@@ -206,10 +210,5 @@ public sealed class SyncExecutorTests
 
         Assert.False(File.Exists(Path.Combine(target.FullName, ".Trash-100", "file.txt")));
         Assert.Empty(knownModel.FolderSnapshot.Current);
-    }
-
-    private static void MatchLastWriteTime(string sourcePath, string targetPath)
-    {
-        File.SetLastWriteTimeUtc(targetPath, File.GetLastWriteTimeUtc(sourcePath));
     }
 }

@@ -5,23 +5,33 @@ namespace Syncrer.Sync.Model;
 
 public static class ModelUtils
 {
-    public static FolderSnapshot BuildModel(DirectoryInfo folder, ILogger logger)
+    public static FolderSnapshot BuildModel(
+        DirectoryInfo folder,
+        ILogger logger,
+        int estimatedFileCount = 10000)
     {
         var sw = Stopwatch.StartNew();
 
-        FileInfo[] files = folder.GetFiles("*", SearchOption.AllDirectories);
-        var model = new FolderSnapshot(files.Length);
-        foreach (var file in files)
+        var model = new FolderSnapshot(estimatedFileCount);
+
+        var options = new EnumerationOptions
+        {
+            RecurseSubdirectories = true,
+            IgnoreInaccessible = true
+        };
+
+        foreach (FileInfo file in folder.EnumerateFiles("*", options))
         {
             model.Add(new FileInfoRecord(
                 Path.GetRelativePath(folder.FullName, file.FullName),
                 file.LastWriteTimeUtc.Ticks,
-                file.Length)
-            );
+                file.Length
+            ));
         }
 
-        sw.Stop();
-        logger.LogDebug("Creating model for {FolderName} took {ElapsedMilliseconds} ms", folder.FullName,
+        logger.LogInformation(
+            "Creating model for {FolderName} took {ElapsedMilliseconds} ms",
+            folder.FullName,
             sw.ElapsedMilliseconds);
 
         return model;
