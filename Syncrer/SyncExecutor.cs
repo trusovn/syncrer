@@ -74,7 +74,9 @@ public class SyncExecutor(
     {
         string[] ignorePatterns = configuration.GetSection("fileIgnorePatterns").Get<string[]>() ?? [];
         var regex = BuildRegex(ignorePatterns);
-        files.RemoveWhere(f => regex.IsMatch(Path.GetFileName(f)));
+        files.RemoveWhere(f =>
+            f.Split(Path.DirectorySeparatorChar)
+                .Any(regex.IsMatch));
     }
 
     private static Regex BuildRegex(string[] patterns)
