@@ -47,6 +47,19 @@ public class HostBuilder
         hostBuilder.Services.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);
         hostBuilder.Services.AddSerilog(Log.Logger);
         hostBuilder.Services.AddSingleton(config);
+        hostBuilder.Services.AddQuartz(quartzConfigurator =>
+        {
+            var jobKey = new JobKey("scheduler", "group1");
+            quartzConfigurator.AddJob<SyncExecutor>(job => job.WithIdentity(jobKey));
+            quartzConfigurator.AddTrigger(trigger => trigger
+                .WithIdentity("trigger1", "group1")
+                .ForJob(jobKey)
+                .StartNow()
+                .WithSimpleSchedule(x => x
+                    .WithIntervalInSeconds(inputParams.Params.SyncInterval)
+                    .RepeatForever()
+                    .WithMisfireHandlingInstructionNextWithExistingCount()));
+        });
     }
 
     private static void ConfigureLogger(IConfigurationRoot config)

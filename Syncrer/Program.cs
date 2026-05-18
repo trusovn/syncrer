@@ -15,7 +15,6 @@ internal static class Program
         {
             var inputParams = new InputParams(args);
             var builder = new HostBuilder(args, inputParams);
-            await Scheduler.ConfigureRunner(builder);
 
             builder.Provider.GetService<StartupSyncer>()!.Run();
 

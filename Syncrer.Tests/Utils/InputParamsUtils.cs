@@ -18,7 +18,6 @@ public static class InputParamsUtils
             args.Add("--yes");
         }
 
-        return new InputParams(
-            [..args]);
+        return new InputParams([..args]);
     }
 }
