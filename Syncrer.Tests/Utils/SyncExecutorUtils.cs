@@ -14,14 +14,17 @@ public static class SyncExecutorUtils
     {
         var configurationValues = ignorePatterns
             .Select((pattern, index) => new KeyValuePair<string, string?>($"fileIgnorePatterns:{index}", pattern));
-        var configuration = new ConfigurationBuilder()
+        var configurationRoot = new ConfigurationBuilder()
             .AddInMemoryCollection(configurationValues)
             .Build();
+        var configuration = InputParamsUtils.CreateInputParams(
+            source,
+            target,
+            configurationRoot: configurationRoot);
 
         return new SyncExecutor(
-            InputParamsUtils.CreateInputParams(source, target),
+            configuration,
             knownModelStore,
-            NullLogger<SyncExecutor>.Instance,
-            configuration);
+            NullLogger<SyncExecutor>.Instance);
     }
 }

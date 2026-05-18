@@ -1,5 +1,4 @@
 using System.Text.RegularExpressions;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Quartz;
 using Syncrer.Inputs;
@@ -10,10 +9,9 @@ namespace Syncrer;
 
 [DisallowConcurrentExecution]
 public class SyncExecutor(
-    InputParams inputParams,
+    Configuration configuration,
     KnownModelStore knownModelStore,
-    ILogger<SyncExecutor> logger,
-    IConfigurationRoot configuration) : IJob
+    ILogger<SyncExecutor> logger) : IJob
 {
     public Task Execute(IJobExecutionContext context)
     {
@@ -22,7 +20,7 @@ public class SyncExecutor(
         FolderSnapshot sourceSnapshot;
         try
         {
-            sourceSnapshot = ModelUtils.BuildModel(inputParams.Params.SourceFolder, logger);
+            sourceSnapshot = ModelUtils.BuildModel(configuration.SourceFolder, logger);
         }
         catch (IOException exception)
         {
@@ -39,7 +37,7 @@ public class SyncExecutor(
 
         logger.LogDebug("Found {FileDifferencesCount} modifications", filesDiff.Count);
 
-        ActionsMap actionsMap = new(filesDiff, inputParams);
+        ActionsMap actionsMap = new(filesDiff, configuration);
 
         ExecuteSync(actionsMap);
 
@@ -49,23 +47,23 @@ public class SyncExecutor(
     private Task RebuildKnownModelAndComplete()
     {
         // TODO: do the rebuild in a separate 'check for health' process - not every time here
-        knownModelStore.BuildNew(inputParams.Params.TargetFolder);
+        knownModelStore.BuildNew(configuration.TargetFolder);
         return Task.CompletedTask;
     }
 
     private void ExecuteSync(ActionsMap actionsMap)
     {
-        FileUtils.DeleteFiles(actionsMap.GetDeleted(), inputParams.Params.TargetFolder, logger);
+        FileUtils.DeleteFiles(actionsMap.GetDeleted(), configuration.TargetFolder, logger);
         FileUtils.CopyFiles(
             actionsMap.GetNew(),
-            inputParams.Params.SourceFolder,
-            inputParams.Params.TargetFolder,
+            configuration.SourceFolder,
+            configuration.TargetFolder,
             SyncActionType.New,
             logger);
         FileUtils.CopyFiles(
             actionsMap.GetModified(),
-            inputParams.Params.SourceFolder,
-            inputParams.Params.TargetFolder,
+            configuration.SourceFolder,
+            configuration.TargetFolder,
             SyncActionType.Modified,
             logger);
     }
@@ -82,8 +80,7 @@ public class SyncExecutor(
 
     private void FilterOutIgnored(HashSet<string> files)
     {
-        string[] ignorePatterns = configuration.GetSection("fileIgnorePatterns").Get<string[]>() ?? [];
-        var regex = BuildRegex(ignorePatterns);
+        var regex = BuildRegex(configuration.FileIgnorePatterns);
         files.RemoveWhere(f =>
             f.Split(Path.DirectorySeparatorChar)
                 .Any(regex.IsMatch));

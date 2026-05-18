@@ -13,8 +13,7 @@ internal static class Program
     {
         try
         {
-            var inputParams = new InputParams(args);
-            var builder = new HostBuilder(args, inputParams);
+            var builder = new HostBuilder(args);
 
             builder.Provider.GetService<StartupSyncer>()!.Run();
 

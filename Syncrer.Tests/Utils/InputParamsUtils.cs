@@ -1,10 +1,15 @@
+using Microsoft.Extensions.Configuration;
 using Syncrer.Inputs;
 
 namespace Syncrer.Tests.Utils;
 
 public static class InputParamsUtils
 {
-    public static InputParams CreateInputParams(DirectoryInfo source, DirectoryInfo target, bool assumeYes = false)
+    public static Configuration CreateInputParams(
+        DirectoryInfo source,
+        DirectoryInfo target,
+        bool assumeYes = false,
+        IConfigurationRoot? configurationRoot = null)
     {
         var args = new List<string>
         {
@@ -18,6 +23,7 @@ public static class InputParamsUtils
             args.Add("--yes");
         }
 
-        return new InputParams([..args]);
+        configurationRoot ??= new ConfigurationBuilder().Build();
+        return new Configuration([..args], configurationRoot);
     }
 }

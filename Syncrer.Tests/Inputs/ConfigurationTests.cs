@@ -2,7 +2,7 @@ using Syncrer.Inputs;
 
 namespace Syncrer.Tests.Inputs;
 
-public sealed class InputParamsTests
+public sealed class ConfigurationTests
 {
     [Fact]
     public void Constructor_AllowsMissingTargetFolderWhenParentExists()
@@ -11,17 +11,17 @@ public sealed class InputParamsTests
         DirectoryInfo source = temp.CreateDirectory("source");
         DirectoryInfo target = new(temp.GetPath("target"));
 
-        var inputParams = new InputParams(
+        var inputParams = new Configuration(
         [
             "--source-folder", source.FullName,
             "--target-folder", target.FullName,
             "--sync-interval", "10"
         ]);
 
-        Assert.Equal(source.FullName, inputParams.Params.SourceFolder.FullName);
-        Assert.Equal(target.FullName, inputParams.Params.TargetFolder.FullName);
-        Assert.Equal(10, inputParams.Params.SyncInterval);
-        Assert.False(inputParams.Params.AssumeYes);
+        Assert.Equal(source.FullName, inputParams.SourceFolder.FullName);
+        Assert.Equal(target.FullName, inputParams.TargetFolder.FullName);
+        Assert.Equal(10, inputParams.SyncIntervalSeconds);
+        Assert.False(inputParams.AssumeYes);
         Assert.False(target.Exists);
     }
 
@@ -32,7 +32,7 @@ public sealed class InputParamsTests
         string source = temp.CreateFile("source.txt", "source");
         DirectoryInfo target = new(temp.GetPath("target"));
 
-        var exception = Assert.Throws<InputParamsException>(() => new InputParams(
+        var exception = Assert.Throws<InputParamsException>(() => new Configuration(
         [
             "--source-folder", source,
             "--target-folder", target.FullName,
@@ -49,7 +49,7 @@ public sealed class InputParamsTests
     [Fact]
     public void Constructor_HelpRequestThrowsWithSuccessExitCode()
     {
-        var exception = Assert.Throws<InputParamsException>(() => new InputParams(["--help"]));
+        var exception = Assert.Throws<InputParamsException>(() => new Configuration(["--help"]));
 
         Assert.Equal(0, exception.ExitCode);
         Assert.Equal(string.Empty, exception.Message);
@@ -62,7 +62,7 @@ public sealed class InputParamsTests
         DirectoryInfo source = temp.CreateDirectory("target/another/source");
         DirectoryInfo target = temp.CreateDirectory("target");
 
-        var exception = Assert.Throws<InputParamsException>(() => new InputParams(
+        var exception = Assert.Throws<InputParamsException>(() => new Configuration(
         [
             "--source-folder", source.FullName,
             "--target-folder", target.FullName,
@@ -80,7 +80,7 @@ public sealed class InputParamsTests
         DirectoryInfo source = temp.CreateDirectory("source");
         DirectoryInfo target = temp.CreateDirectory("source/another/target");
 
-        var exception = Assert.Throws<InputParamsException>(() => new InputParams(
+        var exception = Assert.Throws<InputParamsException>(() => new Configuration(
         [
             "--source-folder", source.FullName,
             "--target-folder", target.FullName,
@@ -97,7 +97,7 @@ public sealed class InputParamsTests
         using var temp = new TempDirectory();
         DirectoryInfo folder = temp.CreateDirectory("shared");
 
-        var exception = Assert.Throws<InputParamsException>(() => new InputParams(
+        var exception = Assert.Throws<InputParamsException>(() => new Configuration(
         [
             "--source-folder", folder.FullName,
             "--target-folder", folder.FullName,
@@ -115,15 +115,15 @@ public sealed class InputParamsTests
         DirectoryInfo source = temp.CreateDirectory("source");
         DirectoryInfo target = temp.CreateDirectory("source-backup");
 
-        var inputParams = new InputParams(
+        var inputParams = new Configuration(
         [
             "--source-folder", source.FullName,
             "--target-folder", target.FullName,
             "--sync-interval", "10",
         ]);
 
-        Assert.Equal(source.FullName, inputParams.Params.SourceFolder.FullName);
-        Assert.Equal(target.FullName, inputParams.Params.TargetFolder.FullName);
+        Assert.Equal(source.FullName, inputParams.SourceFolder.FullName);
+        Assert.Equal(target.FullName, inputParams.TargetFolder.FullName);
     }
 
     [Theory]
@@ -135,7 +135,7 @@ public sealed class InputParamsTests
         DirectoryInfo source = temp.CreateDirectory("source");
         DirectoryInfo target = temp.CreateDirectory("target");
 
-        var inputParams = new InputParams(
+        var inputParams = new Configuration(
         [
             "--source-folder", source.FullName,
             "--target-folder", target.FullName,
@@ -143,6 +143,6 @@ public sealed class InputParamsTests
             option
         ]);
 
-        Assert.True(inputParams.Params.AssumeYes);
+        Assert.True(inputParams.AssumeYes);
     }
 }

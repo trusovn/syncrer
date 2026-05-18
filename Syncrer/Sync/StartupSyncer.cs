@@ -3,15 +3,15 @@ using Syncrer.Sync.Model;
 
 namespace Syncrer.Sync;
 
-public class StartupSyncer(InputParams inputParams, KnownModelStore modelStore)
+public class StartupSyncer(Configuration configuration, KnownModelStore modelStore)
 {
     public void Run()
     {
-        if (!inputParams.Params.TargetFolder.Exists)
+        if (!configuration.TargetFolder.Exists)
         {
-            inputParams.Params.TargetFolder.Create();
+            configuration.TargetFolder.Create();
         }
 
-        modelStore.BuildNew(inputParams.Params.TargetFolder);
+        modelStore.BuildNew(configuration.TargetFolder);
     }
 }

@@ -14,39 +14,36 @@ public class HostBuilder
     public IServiceProvider Provider { get; }
     public IHost Host { get; }
 
-    public HostBuilder(string[] args, InputParams inputParams)
+    public HostBuilder(string[] args)
     {
-        var builder = CreateHostBuilder(args, inputParams);
+        HostApplicationBuilder builder = CreateHostBuilder(args);
         Host = builder.Build();
         var serviceScope = Host.Services.CreateScope();
         Provider = serviceScope.ServiceProvider;
     }
 
-    private static HostApplicationBuilder CreateHostBuilder(string[] args, InputParams inputParams)
+    private static HostApplicationBuilder CreateHostBuilder(string[] args)
     {
         var config = GetConfiguration();
         ConfigureLogger(config);
+        var configuration = new Configuration(args, config);
 
         var hostBuilder = Microsoft.Extensions.Hosting.Host.CreateApplicationBuilder(args);
-        ConfigureServices(args, inputParams, hostBuilder, config);
+        ConfigureServices(args, configuration, hostBuilder);
 
         return hostBuilder;
     }
 
     private static void ConfigureServices(
         string[] args,
-        InputParams inputParams,
-        HostApplicationBuilder hostBuilder,
-        IConfigurationRoot config)
+        Configuration configuration,
+        HostApplicationBuilder hostBuilder)
     {
         hostBuilder.Services.AddSingleton(args);
-        hostBuilder.Services.AddSingleton(inputParams);
+        hostBuilder.Services.AddSingleton(configuration);
         hostBuilder.Services.AddSingleton<StartupSyncer>();
         hostBuilder.Services.AddSingleton<KnownModelStore>();
-        hostBuilder.Services.AddQuartz();
-        hostBuilder.Services.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);
         hostBuilder.Services.AddSerilog(Log.Logger);
-        hostBuilder.Services.AddSingleton(config);
         hostBuilder.Services.AddQuartz(quartzConfigurator =>
         {
             var jobKey = new JobKey("scheduler", "group1");
@@ -56,10 +53,11 @@ public class HostBuilder
                 .ForJob(jobKey)
                 .StartNow()
                 .WithSimpleSchedule(x => x
-                    .WithIntervalInSeconds(inputParams.Params.SyncInterval)
+                    .WithIntervalInSeconds(configuration.SyncIntervalSeconds)
                     .RepeatForever()
                     .WithMisfireHandlingInstructionNextWithExistingCount()));
         });
+        hostBuilder.Services.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);
     }
 
     private static void ConfigureLogger(IConfigurationRoot config)

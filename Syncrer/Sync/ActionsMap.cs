@@ -4,12 +4,12 @@ namespace Syncrer.Sync;
 
 public class ActionsMap
 {
-    private readonly InputParams _inputParams;
+    private readonly Configuration _configuration;
     private readonly Dictionary<SyncActionType, HashSet<string>> _actionsMap;
 
-    public ActionsMap(HashSet<string> filesDiff, InputParams inputParams)
+    public ActionsMap(HashSet<string> filesDiff, Configuration configuration)
     {
-        _inputParams = inputParams;
+        _configuration = configuration;
         _actionsMap = BuildActionsMap(filesDiff);
     }
 
@@ -45,7 +45,7 @@ public class ActionsMap
     {
         foreach (var filePath in actionsMap[SyncActionType.Deleted])
         {
-            var targetPath = Path.Combine(_inputParams.Params.SourceFolder.FullName, filePath);
+            string targetPath = Path.Combine(_configuration.SourceFolder.FullName, filePath);
             if (File.Exists(targetPath))
             {
                 actionsMap[SyncActionType.Modified].Add(filePath);
@@ -59,7 +59,7 @@ public class ActionsMap
     {
         foreach (var filePath in actionsMap[SyncActionType.Deleted])
         {
-            var targetPath = Path.Combine(_inputParams.Params.TargetFolder.FullName, filePath);
+            string targetPath = Path.Combine(_configuration.TargetFolder.FullName, filePath);
             if (!File.Exists(targetPath))
             {
                 actionsMap[SyncActionType.New].Add(filePath);
